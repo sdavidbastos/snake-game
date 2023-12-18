@@ -14,10 +14,10 @@ class Snake {
     #ctx
     #size = 30
     #direction = {
-        "w": "up",
-        "a": "left",
-        "s": "down",
-        "d": "right"
+        "up": (head) => {this.#length.push({x: head.x, y: head.y + this.#size})},
+        "left": (head) => {this.#length.push({x: head.x + this.#size, y: head.y})},
+        "down": (head) => {this.#length.push({x: head.x, y: head.y - this.#size})},
+        "right": (head) => {this.#length.push({x: head.x - this.#size, y: head.y})}
     }
     constructor(ctx){
         this.#ctx = ctx;
@@ -32,8 +32,12 @@ class Snake {
             this.#ctx.fillRect(position.x, position.y, this.#size, this.#size)});
     }
 
-    move(){
-        const head = this.#length.at
+    move(direction){
+        const head = this.#length.at(-1);
+        this.#length.unshift();
+        if(this.#direction[direction]){
+            this.#direction[direction](head);
+        }
     }
 
     execute(){
