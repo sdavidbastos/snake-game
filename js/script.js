@@ -58,7 +58,7 @@ class Food{
 }
 class Snake {
     length = [
-        { x: 0, y: 0 },
+        { x: 270, y: 240 },
     ];
     #ctx
     #size = 30
@@ -79,7 +79,7 @@ class Snake {
             if (index === this.length.length - 1) {
                 this.#ctx.fillStyle = "#fff";
             }
-            this.#ctx.fillRect(position.x, position.y, this.#size, this.#size)
+            this.#ctx.fillRect(position.x, position.y, this.#size, this.#size);
         });
     }
 
@@ -99,7 +99,18 @@ class Snake {
         this.#currentDirection = direction;
     }
 
+    collision(){
+        const head = this.length.at(-1);
+        const tail = this.length.length -2
+        if(this.length.length > 3){
+           return !!this.length.find((posititon, index) =>( index < tail && posititon.x == head.x && posititon.y == head.y));
+        }
+    }
+
     execute() {
+        if(this.#currentDirection === null){
+            return;
+        }
         this.draw();
         this.move();
     }
@@ -141,24 +152,48 @@ class Game {
 
         if(head.x == this.#food.x && head.y == this.#food.y){
             this.#snake.length.push(head);
-            console.log(this.#snake.length)
+            this.#food.createFood();
+            this.incrementScore();
+            audio.play()
+            while(this.#snake.length.find((posititon) =>posititon.x == this.#food.x && posititon.y==this.#food.y)){
+                this.#food.createFood()
+            }
+        }
+    }
+
+    checkCollision(){
+        const head = this.#snake.length.at(-1);
+        const canvasLimit = canvas.width - 30
+        const wallCollision = (
+        head.x < 0 
+        || head.x > canvasLimit 
+        || head.y < 0 
+        || head.y > canvasLimit);
+        const snakeCollision = this.#snake.collision();
+
+        if(wallCollision || snakeCollision){
+            this.gameOver();
+            return true;
         }
     }
 
     gameOver(){
-        direction = undefined;
-
+        this.#snake.currentDirection = null
         menu.style.display = "flex";
         finalScore.innerText = score.innerText;
         canvas.style.filter = "blur(2px)";
     }
+
     start() {
         this.#ctx.clearRect(0, 0, 600, 600);
         this.drawGrid();
+        if(this.checkCollision()){
+            return;
+        };
         this.#snake.execute();
         this.#food.execute();
-        this.checkEat()
-        setTimeout(() => this.start(), 100);
+        this.checkEat();
+        setTimeout(() => this.start(), 80);
     }
 }
 
@@ -167,8 +202,12 @@ const food = new Food(ctx);
 const game = new Game(ctx, snake, food);
 
 game.start();
-document.addEventListener("keydown", ({ key }) => {
+document.addEventListener("keypress", ({ key }) => {
     if (["w", "a", "s", "d"].includes(key)) {
         snake.changeDirection(key);
     }
+})
+
+buttonPlay.addEventListener("click", () => {
+    window.location.reload();
 })
